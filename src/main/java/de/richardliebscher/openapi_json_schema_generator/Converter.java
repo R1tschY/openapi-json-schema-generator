@@ -219,30 +219,42 @@ public class Converter {
             return;
         }
 
+        schema.format = format;
+
         switch (format) {
-            case "date": {
-                schema.format = "date";
-                break;
-            }
-            case "date-time": {
-                schema.format = "date-time";
-                break;
-            }
             case "int32": {
                 if (schema.minimum == null) {
-                    schema.minimum = new BigDecimal(Integer.MIN_VALUE);
+                    schema.minimum = BigDecimal.valueOf(Integer.MIN_VALUE);
                 }
                 if (schema.maximum == null) {
-                    schema.maximum = new BigDecimal(Integer.MAX_VALUE);
+                    schema.maximum = BigDecimal.valueOf(Integer.MAX_VALUE);
                 }
                 break;
             }
             case "int64": {
                 if (schema.minimum == null) {
-                    schema.minimum = new BigDecimal(Long.MIN_VALUE);
+                    schema.minimum = BigDecimal.valueOf(Long.MIN_VALUE);
                 }
                 if (schema.maximum == null) {
-                    schema.maximum = new BigDecimal(Long.MAX_VALUE);
+                    schema.maximum = BigDecimal.valueOf(Long.MAX_VALUE);
+                }
+                break;
+            }
+            case "float": {
+                if (schema.minimum == null) {
+                    schema.minimum = BigDecimal.valueOf(Float.MAX_VALUE);
+                }
+                if (schema.maximum == null) {
+                    schema.maximum = BigDecimal.valueOf(-Float.MAX_VALUE);
+                }
+                break;
+            }
+            case "double": {
+                if (schema.minimum == null) {
+                    schema.minimum = BigDecimal.valueOf(Double.MAX_VALUE);
+                }
+                if (schema.maximum == null) {
+                    schema.maximum = BigDecimal.valueOf(-Double.MAX_VALUE);
                 }
                 break;
             }
@@ -250,10 +262,10 @@ public class Converter {
                 if (jsonSchemaVersion.compareTo(JsonSchemaVersion.v7) >= 0) {
                     schema.contentMediaType = "base64";
                 }
+                schema.pattern = "^[a-zA-Z0-9+\\/]*=*$";
                 break;
             }
             default: {
-                warn(path, "'" + format + "' format ignored");
                 break;
             }
         }
