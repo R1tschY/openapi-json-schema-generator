@@ -74,7 +74,7 @@ public class JsonSchema {
     public Map<String, JsonSchema> patternProperties;
 
     // array
-    public JsonSchema items; // TODO: can be a list
+    public JsonSchema items;
     public JsonSchema contains;
     public Integer minItems;
     public Integer maxItems;

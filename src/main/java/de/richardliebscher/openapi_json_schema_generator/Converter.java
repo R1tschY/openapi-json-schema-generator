@@ -276,7 +276,7 @@ public class Converter {
             }
             case "byte": {
                 if (jsonSchemaVersion.compareTo(JsonSchemaVersion.v7) >= 0) {
-                    schema.contentMediaType = "base64";
+                    schema.contentEncoding = "base64";
                 }
                 schema.pattern = "^[a-zA-Z0-9+\\/]*=*$";
                 break;
