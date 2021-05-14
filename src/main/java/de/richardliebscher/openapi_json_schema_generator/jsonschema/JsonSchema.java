@@ -11,6 +11,7 @@ public class JsonSchema {
     public String $schema;
     public String $id;
     public Map<String, JsonSchema> definitions;
+    public Map<String, JsonSchema> $defs;
     public String $ref;
 
     // generic

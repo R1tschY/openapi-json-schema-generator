@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id "io.freefair.lombok" version "6.0.0-m2"
 }
 
 group 'de.richardliebscher'
@@ -13,6 +14,7 @@ dependencies {
     implementation 'io.swagger.parser.v3:swagger-parser:2.0.25'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.12.0'
     implementation 'info.picocli:picocli:4.6.1'
+    testImplementation 'com.eclipsesource.minimal-json:minimal-json:0.9.5'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
 }

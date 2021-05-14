@@ -4,33 +4,36 @@ import de.richardliebscher.openapi_json_schema_generator.jsonschema.JsonSchema;
 import de.richardliebscher.openapi_json_schema_generator.jsonschema.JsonSchemaDataType;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.media.Schema;
+import lombok.RequiredArgsConstructor;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import static java.util.stream.Collectors.toMap;
 
+@RequiredArgsConstructor
 public class Converter {
     private final boolean includeReadOnly;
     private final boolean includeWriteOnly;
     private final JsonSchemaVersion jsonSchemaVersion;
-
-    public Converter(boolean includeReadOnly, boolean includeWriteOnly, JsonSchemaVersion jsonSchemaVersion) {
-        this.includeReadOnly = includeReadOnly;
-        this.includeWriteOnly = includeWriteOnly;
-        this.jsonSchemaVersion = jsonSchemaVersion;
-    }
+    private final Consumer<Message> warningsListener;
 
     JsonSchema convert(Components components) {
-        JsonPath path = new JsonPath("components").push("schemas");
-        JsonSchema jsonSchema = new JsonSchema();
-        jsonSchema.definitions = components.getSchemas()
+        var path = new JsonPath("components").push("schemas");
+        var jsonSchema = new JsonSchema();
+        var definitions = components.getSchemas()
                 .entrySet()
                 .stream()
                 .collect(toMap(
                         Map.Entry::getKey,
                         e -> convert(e.getValue(), path.push(e.getKey()))));
+        if (jsonSchemaVersion.compareTo(JsonSchemaVersion.v2019_09) >= 0) {
+            jsonSchema.$defs = definitions;
+        } else {
+            jsonSchema.definitions = definitions;
+        }
         return jsonSchema;
     }
 
@@ -49,10 +52,7 @@ public class Converter {
 
         // trivial
 
-        // TODO: schema.getName();
         JsonSchema jsonSchema = new JsonSchema();
-        setFormat(schema.getFormat(), jsonSchema, path);
-
         jsonSchema.title = schema.getTitle();
         jsonSchema.multipleOf = schema.getMultipleOf();
         jsonSchema.maxLength = schema.getMaxLength();
@@ -89,24 +89,29 @@ public class Converter {
             } else {
                 jsonSchema.maximum = schema.getMaximum();
             }
-            if (Boolean.TRUE.equals(schema.getExclusiveMaximum())) {
+            if (Boolean.TRUE.equals(schema.getExclusiveMinimum())) {
                 jsonSchema.exclusiveMinimum = schema.getMinimum();
             } else {
                 jsonSchema.minimum = schema.getMinimum();
             }
+        } else {
+            jsonSchema.maximum = schema.getMaximum();
+            jsonSchema.exclusiveMaximum = schema.getMaximum();
+            jsonSchema.minimum = schema.getMinimum();
+            jsonSchema.exclusiveMinimum = schema.getMinimum();
         }
 
         // OpenAPI additions
 
         if (schema.getType() != null) {
-            JsonSchemaDataType type = JsonSchemaDataType.fromValue(
-                    schema.getType());
+            JsonSchemaDataType type = JsonSchemaDataType.fromValue(schema.getType());
             if (Boolean.TRUE.equals(schema.getNullable())) {
                 jsonSchema.type = List.of(type, JsonSchemaDataType.NULL);
             } else {
                 jsonSchema.type = List.of(type);
             }
         }
+        setFormat(schema.getFormat(), jsonSchema, path);
 
         if (jsonSchemaVersion.compareTo(JsonSchemaVersion.v7) >= 0) {
             jsonSchema.readOnly = schema.getReadOnly();
@@ -119,25 +124,27 @@ public class Converter {
 
         // Warnings
         if (schema.getExternalDocs() != null) {
-            System.err.println(
-                    "'externalDocs' property at "
-                            + path + " ignored: " + schema.getExternalDocs());
+            warn(path, "'externalDocs' property at ignored: " + schema.getExternalDocs());
         }
         if (schema.getXml() != null) {
-            System.err.println("'xml' property at " + path + " ignored");
+            warn(path, "'xml' property ignored");
         }
         if (schema.getExtensions() != null) {
-            System.err.println("'extensions' property at " + path + " ignored");
+            warn(path, "'extensions' property ignored");
         }
         if (schema.getDiscriminator() != null) {
             // TODO: can we do better?
-            System.err.println("'discriminator' property at " + path + " ignored");
+            warn(path, "'discriminator' property ignored");
         }
 
         // TODO: jsonSchema.examples = mapNullable(schema.getExample(), List::of);
         // TODO: jsonSchema.enum_ = schema.getEnum();
         // TODO: jsonSchema.default_ = schema.getDefault();
         return jsonSchema;
+    }
+
+    private void warn(JsonPath path, String message) {
+        warningsListener.accept(Message.warning(path, message));
     }
 
     private void setFormat(String format, JsonSchema schema, JsonPath path) {
@@ -155,20 +162,28 @@ public class Converter {
                 break;
             }
             case "int32": {
-                schema.minimum = new BigDecimal(Integer.MIN_VALUE);
-                schema.maximum = new BigDecimal(Integer.MAX_VALUE);
+                if (schema.minimum == null) {
+                    schema.minimum = new BigDecimal(Integer.MIN_VALUE);
+                }
+                if (schema.maximum == null) {
+                    schema.maximum = new BigDecimal(Integer.MAX_VALUE);
+                }
                 break;
             }
             case "int64": {
-                schema.minimum = new BigDecimal(Long.MIN_VALUE);
-                schema.maximum = new BigDecimal(Long.MAX_VALUE);
+                if (schema.minimum == null) {
+                    schema.minimum = new BigDecimal(Long.MIN_VALUE);
+                }
+                if (schema.maximum == null) {
+                    schema.maximum = new BigDecimal(Long.MAX_VALUE);
+                }
                 break;
             }
             default: {
-                System.err.println(
-                        "'" + format + "' format at " + path + " ignored");
+                warn(path, "'" + format + "' format ignored");
                 break;
             }
         }
     }
+
 }
