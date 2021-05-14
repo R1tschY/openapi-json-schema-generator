@@ -27,4 +27,13 @@ public final class Message {
     public enum Severity {
         WARNING, ERROR
     }
+
+    @Override
+    public String toString() {
+        return "Message{" +
+                "severity=" + severity +
+                ", path=" + path +
+                ", message='" + message + '\'' +
+                '}';
+    }
 }

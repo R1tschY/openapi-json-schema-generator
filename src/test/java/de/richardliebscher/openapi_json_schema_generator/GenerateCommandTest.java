@@ -3,6 +3,7 @@ package de.richardliebscher.openapi_json_schema_generator;
 import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonValue;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -35,6 +36,129 @@ class GenerateCommandTest {
         assertNoMessages();
 
         assertEquals(0, jsonValue.asObject().get("$defs").asObject().size());
+    }
+
+    @Test
+    void checkObject() {
+        // ARRANGE
+        JsonObject input = openApiWithSchemas(Json.object()
+                .add("Test", Json.object()
+                        .add("type", "object")
+                        .add("properties", Json.object()
+                                .add("id", Json.object().add("type", "integer"))
+                                .add("name", Json.object().add("type", "string")))));
+
+        // ACT
+        JsonValue jsonValue = convert(input, messageCollector, defaultConverter);
+
+        // ASSERT
+        assertNotNull(jsonValue);
+        assertNoMessages();
+
+        JsonObject type = jsonValue.asObject().get("$defs").asObject().get("Test").asObject();
+        assertEquals(2, type.get("properties").asObject().size());
+    }
+
+    @Nested
+    class Example {
+        @Test
+        void checkObjectExample() {
+            // ARRANGE
+            JsonObject input = openApiWithSchemas(Json.object()
+                    .add("Test", Json.object()
+                            .add("type", "object")
+                            .add("properties", Json.object()
+                                    .add("id", Json.object().add("type", "integer"))
+                                    .add("name", Json.object().add("type", "string")))
+                            .add("example", Json.object().add("id", 42).add("name", "TEST"))));
+
+            // ACT
+            JsonValue jsonValue = convert(input, messageCollector, defaultConverter);
+
+            // ASSERT
+            assertNotNull(jsonValue);
+            assertNoMessages();
+
+            JsonObject type = jsonValue.asObject().get("$defs").asObject().get("Test").asObject();
+            assertEquals(1, type.get("examples").asArray().size());
+        }
+
+        @Test
+        void checkNumberExample() {
+            // ARRANGE
+            JsonObject input = openApiWithSchemas(Json.object()
+                    .add("Test", Json.object()
+                            .add("type", "number")
+                            .add("example", 42.5)));
+
+            // ACT
+            JsonValue jsonValue = convert(input, messageCollector, defaultConverter);
+
+            // ASSERT
+            assertNotNull(jsonValue);
+            assertNoMessages();
+
+            JsonObject type = jsonValue.asObject().get("$defs").asObject().get("Test").asObject();
+            assertEquals(42.5, type.get("examples").asArray().get(0).asDouble());
+        }
+
+        @Test
+        void checkIntegerExample() {
+            // ARRANGE
+            JsonObject input = openApiWithSchemas(Json.object()
+                    .add("Test", Json.object()
+                            .add("type", "integer")
+                            .add("example", 42)));
+
+            // ACT
+            JsonValue jsonValue = convert(input, messageCollector, defaultConverter);
+
+            // ASSERT
+            assertNotNull(jsonValue);
+            assertNoMessages();
+
+            JsonObject type = jsonValue.asObject().get("$defs").asObject().get("Test").asObject();
+            assertEquals(42, type.get("examples").asArray().get(0).asInt());
+        }
+
+        @Test
+        void checkStringExample() {
+            // ARRANGE
+            JsonObject input = openApiWithSchemas(Json.object()
+                    .add("Test", Json.object()
+                            .add("type", "string")
+                            .add("example", "TEST")));
+
+            // ACT
+            JsonValue jsonValue = convert(input, messageCollector, defaultConverter);
+
+            // ASSERT
+            assertNotNull(jsonValue);
+            assertNoMessages();
+
+            JsonObject type = jsonValue.asObject().get("$defs").asObject().get("Test").asObject();
+            assertEquals("TEST", type.get("examples").asArray().get(0).asString());
+        }
+
+        @Test
+        void checkNullExample() {
+            // ARRANGE
+            JsonObject input = openApiWithSchemas(Json.object()
+                    .add("Test", Json.object()
+                            .add("type", "string")
+                            .add("nullable", true)
+                            .add("example", Json.NULL)));
+
+            // ACT
+            JsonValue jsonValue = convert(input, messageCollector, defaultConverter);
+
+            // ASSERT
+            assertNotNull(jsonValue);
+            assertNoMessages();
+
+            JsonObject type = jsonValue.asObject().get("$defs").asObject().get("Test").asObject();
+            assertEquals(Json.NULL, type.get("examples").asArray().get(0));
+        }
     }
 
     @Test

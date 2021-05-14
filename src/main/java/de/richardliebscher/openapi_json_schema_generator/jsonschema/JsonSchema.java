@@ -20,7 +20,7 @@ public class JsonSchema {
     @JsonProperty("default")
     public JsonNode default_;
     @JsonProperty("examples")
-    public JsonNode examples;
+    public List<JsonNode> examples;
 
     @JsonProperty("enum")
     public List<JsonNode> enum_;

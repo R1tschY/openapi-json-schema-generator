@@ -1,5 +1,7 @@
 package de.richardliebscher.openapi_json_schema_generator;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.*;
 import de.richardliebscher.openapi_json_schema_generator.jsonschema.JsonSchema;
 import de.richardliebscher.openapi_json_schema_generator.jsonschema.JsonSchemaDataType;
 import io.swagger.v3.oas.models.Components;
@@ -132,6 +134,8 @@ public class Converter {
             jsonSchema.deprecated = schema.getDeprecated();
         }
 
+        jsonSchema.examples = convertExample(schema, path);
+
         // Warnings
         if (schema.getExternalDocs() != null) {
             warn(path, "'externalDocs' property at ignored: " + schema.getExternalDocs());
@@ -147,10 +151,38 @@ public class Converter {
             warn(path, "'discriminator' property ignored");
         }
 
-        // TODO: jsonSchema.examples = mapNullable(schema.getExample(), List::of);
         // TODO: jsonSchema.enum_ = schema.getEnum();
         // TODO: jsonSchema.default_ = schema.getDefault();
         return jsonSchema;
+    }
+
+    private List<JsonNode> convertExample(Schema<?> schema, JsonPath path) {
+        if (!schema.getExampleSetFlag()) {
+            return null;
+        }
+
+        JsonNode exampleNode = toJsonNode(schema.getExample(), path);
+        return exampleNode == null ? null : List.of(exampleNode);
+    }
+
+    private JsonNode toJsonNode(Object example, JsonPath path) {
+        if (example == null) {
+            return NullNode.getInstance();
+        } else if (example instanceof JsonNode) {
+            return (JsonNode) example;
+        } else if (example instanceof BigDecimal) {
+            return DecimalNode.valueOf((BigDecimal) example);
+        } else if (example instanceof Number) {
+            return DecimalNode.valueOf(new BigDecimal(example.toString()));
+        } else if (example instanceof String) {
+            return TextNode.valueOf((String) example);
+        } else if (example instanceof Boolean) {
+            return BooleanNode.valueOf((Boolean) example);
+        } else {
+            warn(path, "value ignored because of internal error: unsupported example type: "
+                    + example.getClass().getName());
+            return null;
+        }
     }
 
     private List<JsonSchema> convertSchemaList(@SuppressWarnings("rawtypes") List<Schema> schemaList, JsonPath path) {
@@ -197,6 +229,12 @@ public class Converter {
                 }
                 if (schema.maximum == null) {
                     schema.maximum = new BigDecimal(Long.MAX_VALUE);
+                }
+                break;
+            }
+            case "byte": {
+                if (jsonSchemaVersion.compareTo(JsonSchemaVersion.v7) >= 0) {
+                    schema.contentMediaType = "base64";
                 }
                 break;
             }
