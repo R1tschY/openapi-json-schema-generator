@@ -169,10 +169,14 @@ public class Converter {
         }
 
         JsonPath enumPath = path.push("enum");
-        return IntStream
+        List<JsonNode> values = IntStream
                 .range(0, schema.getEnum().size())
                 .mapToObj(i -> toJsonNode(schema.getEnum().get(i), enumPath.push(String.valueOf(i))))
                 .collect(toList());
+        if (Boolean.TRUE.equals(schema.getNullable())) {
+            values.add(NullNode.getInstance());
+        }
+        return values;
     }
 
     private List<JsonNode> convertExample(Schema<?> schema, JsonPath path) {

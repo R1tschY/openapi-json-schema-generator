@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.stream.StreamSupport;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -276,22 +277,84 @@ class GenerateCommandTest {
         assertEquals(Long.MIN_VALUE, type.get("minimum").asLong());
     }
 
-    @Test
-    void checkNullable() {
-        // ARRANGE
-        JsonObject input = openApiWithSchemas(Json.object()
-                .add("Test", Json.object().add("type", "integer").add("nullable", true)));
+    @Nested
+    class Nullable {
+        @Test
+        void checkNullable() {
+            // ARRANGE
+            JsonObject input = openApiWithSchemas(Json.object()
+                    .add("Test", Json.object().add("type", "integer").add("nullable", true)));
 
-        // ACT
-        JsonValue jsonValue = convert(input, messageCollector, defaultConverter);
+            // ACT
+            JsonValue jsonValue = convert(input, messageCollector, defaultConverter);
 
-        // ASSERT
-        assertNotNull(jsonValue);
-        assertNoMessages();
+            // ASSERT
+            assertNotNull(jsonValue);
+            assertNoMessages();
 
-        JsonObject type = jsonValue.asObject().get("$defs").asObject().get("Test").asObject();
-        assertEquals("integer", type.get("type").asArray().get(0).asString());
-        assertEquals("null", type.get("type").asArray().get(1).asString());
+            JsonObject type = jsonValue.asObject().get("$defs").asObject().get("Test").asObject();
+            assertEquals("integer", type.get("type").asArray().get(0).asString());
+            assertEquals("null", type.get("type").asArray().get(1).asString());
+        }
+
+        @Test
+        void checkNotNullable() {
+            // ARRANGE
+            JsonObject input = openApiWithSchemas(Json.object()
+                    .add("Test", Json.object().add("type", "integer").add("nullable", false)));
+
+            // ACT
+            JsonValue jsonValue = convert(input, messageCollector, defaultConverter);
+
+            // ASSERT
+            assertNotNull(jsonValue);
+            assertNoMessages();
+
+            JsonObject type = jsonValue.asObject().get("$defs").asObject().get("Test").asObject();
+            assertEquals(1, type.get("type").asArray().size());
+        }
+
+        @Test
+        void checkNullableEnum() {
+            // ARRANGE
+            JsonObject input = openApiWithSchemas(Json.object()
+                    .add("Test", Json.object()
+                            .add("type", "integer")
+                            .add("enum", Json.array(1, 2))
+                            .add("nullable", true)));
+
+            // ACT
+            JsonValue jsonValue = convert(input, messageCollector, defaultConverter);
+
+            // ASSERT
+            assertNotNull(jsonValue);
+            assertNoMessages();
+
+            JsonObject type = jsonValue.asObject().get("$defs").asObject().get("Test").asObject();
+            assertTrue(StreamSupport.stream(type.get("enum").asArray().spliterator(), false)
+                    .anyMatch(e -> e.equals(Json.NULL)));
+        }
+
+        @Test
+        void checkNotNullableEnum() {
+            // ARRANGE
+            JsonObject input = openApiWithSchemas(Json.object()
+                    .add("Test", Json.object()
+                            .add("type", "integer")
+                            .add("enum", Json.array(1, 2))
+                            .add("nullable", false)));
+
+            // ACT
+            JsonValue jsonValue = convert(input, messageCollector, defaultConverter);
+
+            // ASSERT
+            assertNotNull(jsonValue);
+            assertNoMessages();
+
+            JsonObject type = jsonValue.asObject().get("$defs").asObject().get("Test").asObject();
+            assertTrue(StreamSupport.stream(type.get("enum").asArray().spliterator(), false)
+                    .noneMatch(e -> e.equals(Json.NULL)));
+        }
     }
 
     @Test
