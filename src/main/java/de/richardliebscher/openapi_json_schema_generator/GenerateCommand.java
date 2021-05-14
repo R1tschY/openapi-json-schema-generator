@@ -8,8 +8,8 @@ import io.swagger.v3.parser.ObjectMapperFactory;
 import io.swagger.v3.parser.core.models.ParseOptions;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.io.IOUtils;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -33,7 +33,7 @@ public class GenerateCommand {
         if (input.equals("-")) {
             try {
                 result = new OpenAPIParser()
-                        .readContents(readToString(inputStream), null, parseOptions);
+                        .readContents(IOUtils.toString(inputStream, StandardCharsets.UTF_8), null, parseOptions);
             } catch (IOException exception) {
                 warningsListener.accept(
                         Message.error("Failed to read OpenAPI spec"));
@@ -70,16 +70,5 @@ public class GenerateCommand {
         }
 
         return 0;
-    }
-
-    private static String readToString(InputStream inputStream) throws IOException {
-        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-        int nRead;
-        byte[] data = new byte[4096];
-        while ((nRead = inputStream.read(data, 0, data.length)) != -1) {
-            buffer.write(data, 0, nRead);
-        }
-        buffer.flush();
-        return buffer.toString(StandardCharsets.UTF_8);
     }
 }
