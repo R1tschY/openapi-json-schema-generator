@@ -3,6 +3,7 @@ package de.richardliebscher.openapi_json_schema_generator;
 import de.richardliebscher.openapi_json_schema_generator.jsonschema.JsonSchema;
 import de.richardliebscher.openapi_json_schema_generator.jsonschema.JsonSchemaDataType;
 import io.swagger.v3.oas.models.Components;
+import io.swagger.v3.oas.models.media.ComposedSchema;
 import io.swagger.v3.oas.models.media.Schema;
 import lombok.RequiredArgsConstructor;
 
@@ -10,6 +11,8 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static java.util.stream.Collectors.toMap;
 
@@ -71,6 +74,13 @@ public class Converter {
         // schema conversions
 
         jsonSchema.not = convert(schema.getNot(), path.push("not"));
+
+        if (schema instanceof ComposedSchema) {
+            ComposedSchema composedSchema = (ComposedSchema) schema;
+            jsonSchema.anyOf = convertSchemaList(composedSchema.getAnyOf(), path);
+            jsonSchema.oneOf = convertSchemaList(composedSchema.getOneOf(), path);
+            jsonSchema.allOf = convertSchemaList(composedSchema.getAllOf(), path);
+        }
 
         if (schema.getProperties() != null) {
             jsonSchema.properties = schema.getProperties()
@@ -141,6 +151,17 @@ public class Converter {
         // TODO: jsonSchema.enum_ = schema.getEnum();
         // TODO: jsonSchema.default_ = schema.getDefault();
         return jsonSchema;
+    }
+
+    private List<JsonSchema> convertSchemaList(@SuppressWarnings("rawtypes") List<Schema> schemaList, JsonPath path) {
+        if (schemaList == null) {
+            return null;
+        }
+
+        return IntStream
+                .range(0, schemaList.size())
+                .mapToObj(i -> convert(schemaList.get(i), path.push(String.valueOf(i))))
+                .collect(Collectors.toList());
     }
 
     private void warn(JsonPath path, String message) {

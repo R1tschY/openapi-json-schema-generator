@@ -4,6 +4,8 @@ import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonValue;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -131,6 +133,27 @@ class GenerateCommandTest {
         JsonObject type = jsonValue.asObject().get("$defs").asObject().get("Test").asObject();
         assertNull(type.get("minimum"));
         assertEquals(42, type.get("exclusiveMinimum").asInt());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"anyOf", "oneOf", "allOf"})
+    void checkAnyOf(String composer) {
+        // ARRANGE
+        JsonObject input = openApiWithSchemas(Json.object()
+                .add("Test", Json.object().add(composer, Json.array()
+                        .add(Json.object().add("type", "integer"))
+                        .add(Json.object().add("type", "string")))));
+
+        // ACT
+        JsonValue jsonValue = convert(input, messageCollector, defaultConverter);
+
+        // ASSERT
+        assertNotNull(jsonValue);
+        assertNoMessages();
+
+        JsonObject type = jsonValue.asObject().get("$defs").asObject().get("Test").asObject();
+        assertNotNull(type.get(composer));
+        assertEquals(2, type.get(composer).asArray().size());
     }
 
     private void assertNoMessages() {
