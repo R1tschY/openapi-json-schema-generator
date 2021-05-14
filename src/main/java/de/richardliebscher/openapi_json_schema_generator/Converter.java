@@ -59,6 +59,7 @@ public class Converter {
         // trivial
 
         JsonSchema jsonSchema = new JsonSchema();
+        jsonSchema.$schema = jsonSchemaVersion.id;
         jsonSchema.title = schema.getTitle();
         jsonSchema.multipleOf = schema.getMultipleOf();
         jsonSchema.maxLength = schema.getMaxLength();
