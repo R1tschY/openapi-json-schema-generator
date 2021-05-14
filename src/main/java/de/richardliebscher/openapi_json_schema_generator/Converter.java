@@ -35,6 +35,7 @@ public class Converter {
                 .collect(toMap(
                         Map.Entry::getKey,
                         e -> convert(e.getValue(), path.push(e.getKey()))));
+        jsonSchema.$schema = jsonSchemaVersion.id;
         if (jsonSchemaVersion.compareTo(JsonSchemaVersion.v2019_09) >= 0) {
             jsonSchema.$defs = definitions;
         } else {
@@ -59,7 +60,6 @@ public class Converter {
         // trivial
 
         JsonSchema jsonSchema = new JsonSchema();
-        jsonSchema.$schema = jsonSchemaVersion.id;
         jsonSchema.title = schema.getTitle();
         jsonSchema.multipleOf = schema.getMultipleOf();
         jsonSchema.maxLength = schema.getMaxLength();

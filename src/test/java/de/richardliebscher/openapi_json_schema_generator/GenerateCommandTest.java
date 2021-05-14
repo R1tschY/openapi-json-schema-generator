@@ -61,6 +61,42 @@ class GenerateCommandTest {
     }
 
     @Nested
+    class $schema {
+        @Test
+        void check$schemaAtRoot() {
+            // ARRANGE
+            JsonObject input = openApiWithSchemas(Json.object());
+
+            // ACT
+            JsonValue jsonValue = convert(input, messageCollector, defaultConverter);
+
+            // ASSERT
+            assertNotNull(jsonValue);
+            assertNoMessages();
+
+            assertEquals(JsonSchemaVersion.v2019_09.id, jsonValue.asObject().get("$schema").asString());
+        }
+
+        @Test
+        void check$schemaOnlyAtRoot() {
+            // ARRANGE
+            JsonObject input = openApiWithSchemas(Json.object()
+                    .add("Test", Json.object()
+                            .add("type", "string")));
+
+            // ACT
+            JsonValue jsonValue = convert(input, messageCollector, defaultConverter);
+
+            // ASSERT
+            assertNotNull(jsonValue);
+            assertNoMessages();
+
+            JsonObject type = jsonValue.asObject().get("$defs").asObject().get("Test").asObject();
+            assertNull(type.get("$schema"));
+        }
+    }
+
+    @Nested
     class Example {
         @Test
         void checkObjectExample() {
