@@ -295,6 +295,23 @@ class GenerateCommandTest {
     }
 
     @Test
+    void checkArray() {
+        // ARRANGE
+        JsonObject input = openApiWithSchemas(Json.object()
+                .add("Test", Json.object().add("type", "array").add("items", Json.object().add("type", "integer"))));
+
+        // ACT
+        JsonValue jsonValue = convert(input, messageCollector, defaultConverter);
+
+        // ASSERT
+        assertNotNull(jsonValue);
+        assertNoMessages();
+
+        JsonObject type = jsonValue.asObject().get("$defs").asObject().get("Test").asObject();
+        assertEquals("integer", type.get("items").asObject().get("type").asArray().get(0).asString());
+    }
+
+    @Test
     void checkUpgradeExclusiveMaximum() {
         // ARRANGE
         JsonObject input = openApiWithSchemas(Json.object()

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.node.*;
 import de.richardliebscher.openapi_json_schema_generator.jsonschema.JsonSchema;
 import de.richardliebscher.openapi_json_schema_generator.jsonschema.JsonSchemaDataType;
 import io.swagger.v3.oas.models.Components;
+import io.swagger.v3.oas.models.media.ArraySchema;
 import io.swagger.v3.oas.models.media.ComposedSchema;
 import io.swagger.v3.oas.models.media.Schema;
 import lombok.RequiredArgsConstructor;
@@ -82,6 +83,10 @@ public class Converter {
             jsonSchema.anyOf = convertSchemaList(composedSchema.getAnyOf(), path);
             jsonSchema.oneOf = convertSchemaList(composedSchema.getOneOf(), path);
             jsonSchema.allOf = convertSchemaList(composedSchema.getAllOf(), path);
+        }
+
+        if (schema instanceof ArraySchema) {
+            jsonSchema.items = convert(((ArraySchema) schema).getItems(), path);
         }
 
         if (schema.getProperties() != null) {
