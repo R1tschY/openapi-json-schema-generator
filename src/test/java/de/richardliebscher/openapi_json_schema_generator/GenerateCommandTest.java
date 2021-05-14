@@ -181,6 +181,47 @@ class GenerateCommandTest {
         }
     }
 
+    @Nested
+    class AdditionalProperties {
+        @Test
+        void checkFalse() {
+            // ARRANGE
+            JsonObject input = openApiWithSchemas(Json.object()
+                    .add("Test", Json.object()
+                            .add("type", "object")
+                            .add("additionalProperties", false)));
+
+            // ACT
+            JsonValue jsonValue = convert(input, messageCollector, defaultConverter);
+
+            // ASSERT
+            assertNotNull(jsonValue);
+            assertNoMessages();
+
+            JsonObject type = jsonValue.asObject().get("$defs").asObject().get("Test").asObject();
+            assertFalse(type.get("additionalProperties").asBoolean());
+        }
+
+        @Test
+        void checkSchema() {
+            // ARRANGE
+            JsonObject input = openApiWithSchemas(Json.object()
+                    .add("Test", Json.object()
+                            .add("type", "object")
+                            .add("additionalProperties", Json.object().add("type", "integer"))));
+
+            // ACT
+            JsonValue jsonValue = convert(input, messageCollector, defaultConverter);
+
+            // ASSERT
+            assertNotNull(jsonValue);
+            assertNoMessages();
+
+            JsonObject type = jsonValue.asObject().get("$defs").asObject().get("Test").asObject();
+            assertTrue(type.get("additionalProperties").isObject());
+        }
+    }
+
     @Test
     void checkAnyEnum() {
         // ARRANGE

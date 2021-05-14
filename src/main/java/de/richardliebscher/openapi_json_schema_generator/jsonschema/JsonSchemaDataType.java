@@ -11,15 +11,11 @@ public enum JsonSchemaDataType {
     BOOLEAN("boolean"),
     NULL("null");
 
+    @JsonValue
     public final String value;
 
     JsonSchemaDataType(String value) {
         this.value = value;
-    }
-
-    @JsonValue
-    public String getValue() {
-        return value;
     }
 
     public static JsonSchemaDataType fromValue(String value) {

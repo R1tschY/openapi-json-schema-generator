@@ -66,7 +66,7 @@ public class JsonSchema {
 
     // object
     public Map<String, JsonSchema> properties;
-    public Boolean additionalProperties;
+    public Object additionalProperties;
     public List<String> required;
     public JsonSchema propertyNames;
     public Integer minProperties;

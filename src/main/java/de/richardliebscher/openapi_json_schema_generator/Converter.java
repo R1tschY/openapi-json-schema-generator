@@ -71,7 +71,6 @@ public class Converter {
         jsonSchema.maxProperties = schema.getMaxProperties();
         jsonSchema.minProperties = schema.getMinProperties();
         jsonSchema.required = schema.getRequired();
-        jsonSchema.additionalProperties = (Boolean) schema.getAdditionalProperties(); // TODO: can be schema
         jsonSchema.description = schema.getDescription();
         jsonSchema.$ref = schema.get$ref(); // TODO: map ref
 
@@ -97,6 +96,13 @@ public class Converter {
                     .collect(toMap(
                             Map.Entry::getKey,
                             e -> convert(e.getValue(), path.push(e.getKey()))));
+        }
+
+        if (schema.getAdditionalProperties() instanceof Boolean) {
+            jsonSchema.additionalProperties = schema.getAdditionalProperties();
+        } else if (schema.getAdditionalProperties() instanceof Schema) {
+            jsonSchema.additionalProperties = convert(
+                    (Schema<?>) schema.getAdditionalProperties(), path.push("additionalProperties"));
         }
 
         // v4 -> v6
