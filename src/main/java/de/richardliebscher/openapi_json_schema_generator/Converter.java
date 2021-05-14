@@ -13,9 +13,9 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
 @RequiredArgsConstructor
@@ -135,6 +135,10 @@ public class Converter {
         }
 
         jsonSchema.examples = convertExample(schema, path);
+        jsonSchema.enum_ = convertEnum(schema, path);
+        jsonSchema.default_ = schema.getDefault() != null
+                ? toJsonNode(schema.getDefault(), path.push("default"))
+                : null;
 
         // Warnings
         if (schema.getExternalDocs() != null) {
@@ -151,9 +155,19 @@ public class Converter {
             warn(path, "'discriminator' property ignored");
         }
 
-        // TODO: jsonSchema.enum_ = schema.getEnum();
-        // TODO: jsonSchema.default_ = schema.getDefault();
         return jsonSchema;
+    }
+
+    private List<JsonNode> convertEnum(Schema<?> schema, JsonPath path) {
+        if (schema.getEnum() == null) {
+            return null;
+        }
+
+        JsonPath enumPath = path.push("enum");
+        return IntStream
+                .range(0, schema.getEnum().size())
+                .mapToObj(i -> toJsonNode(schema.getEnum().get(i), enumPath.push(String.valueOf(i))))
+                .collect(toList());
     }
 
     private List<JsonNode> convertExample(Schema<?> schema, JsonPath path) {
@@ -161,7 +175,7 @@ public class Converter {
             return null;
         }
 
-        JsonNode exampleNode = toJsonNode(schema.getExample(), path);
+        JsonNode exampleNode = toJsonNode(schema.getExample(), path.push("example"));
         return exampleNode == null ? null : List.of(exampleNode);
     }
 
@@ -193,7 +207,7 @@ public class Converter {
         return IntStream
                 .range(0, schemaList.size())
                 .mapToObj(i -> convert(schemaList.get(i), path.push(String.valueOf(i))))
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     private void warn(JsonPath path, String message) {

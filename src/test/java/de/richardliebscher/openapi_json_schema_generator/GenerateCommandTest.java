@@ -159,6 +159,83 @@ class GenerateCommandTest {
             JsonObject type = jsonValue.asObject().get("$defs").asObject().get("Test").asObject();
             assertEquals(Json.NULL, type.get("examples").asArray().get(0));
         }
+
+        @Test
+        void checkNoExample() {
+            // ARRANGE
+            JsonObject input = openApiWithSchemas(Json.object()
+                    .add("Test", Json.object()
+                            .add("type", "string")
+                            .add("nullable", true)));
+
+            // ACT
+            JsonValue jsonValue = convert(input, messageCollector, defaultConverter);
+
+            // ASSERT
+            assertNotNull(jsonValue);
+            assertNoMessages();
+
+            JsonObject type = jsonValue.asObject().get("$defs").asObject().get("Test").asObject();
+            assertNull(type.get("examples"));
+        }
+    }
+
+    @Test
+    void checkAnyEnum() {
+        // ARRANGE
+        JsonObject input = openApiWithSchemas(Json.object()
+                .add("Test", Json.object()
+                        .add("enum", Json.array()
+                                .add(Json.value(42))
+                                .add(Json.value("42"))
+                                .add(Json.object())
+                                .add(Json.array()))));
+
+        // ACT
+        JsonValue jsonValue = convert(input, messageCollector, defaultConverter);
+
+        // ASSERT
+        assertNotNull(jsonValue);
+        assertNoMessages();
+
+        JsonObject type = jsonValue.asObject().get("$defs").asObject().get("Test").asObject();
+        assertEquals(4, type.get("enum").asArray().size());
+    }
+
+    @Test
+    void checkNoDefault() {
+        // ARRANGE
+        JsonObject input = openApiWithSchemas(Json.object()
+                .add("Test", Json.object()));
+
+        // ACT
+        JsonValue jsonValue = convert(input, messageCollector, defaultConverter);
+
+        // ASSERT
+        assertNotNull(jsonValue);
+        assertNoMessages();
+
+        JsonObject type = jsonValue.asObject().get("$defs").asObject().get("Test").asObject();
+        assertNull(type.get("default"));
+    }
+
+    @Test
+    void checkDefault() {
+        // ARRANGE
+        JsonObject input = openApiWithSchemas(Json.object()
+                .add("Test", Json.object()
+                        .add("type", "integer")
+                        .add("default", Json.value(42))));
+
+        // ACT
+        JsonValue jsonValue = convert(input, messageCollector, defaultConverter);
+
+        // ASSERT
+        assertNotNull(jsonValue);
+        assertNoMessages();
+
+        JsonObject type = jsonValue.asObject().get("$defs").asObject().get("Test").asObject();
+        assertEquals(42, type.get("default").asInt());
     }
 
     @Test
