@@ -7,9 +7,9 @@ import java.util.stream.Collectors;
 import static java.lang.String.format;
 
 public enum JsonSchemaVersion {
-    v4("draft-4", "http://json-schema.org/draft-04/schema#"),
-    v6("draft-6", "http://json-schema.org/draft-06/schema#"),
-    v7("draft-7", "http://json-schema.org/draft-07/schema#"),
+    v4("4", "http://json-schema.org/draft-04/schema#"),
+    v6("6", "http://json-schema.org/draft-06/schema#"),
+    v7("7", "http://json-schema.org/draft-07/schema#"),
     v2019_09("2019-09", "https://json-schema.org/draft/2019-09/schema");
 
     public final String name;
