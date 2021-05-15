@@ -19,6 +19,7 @@ import java.util.function.Consumer;
 @RequiredArgsConstructor
 public class GenerateCommand {
     private final String input;
+    private final String mainSchema;
     private final InputStream inputStream;
     private final OutputStream outputStream;
     private final Converter converter;
@@ -56,7 +57,7 @@ public class GenerateCommand {
             return 2;
         }
 
-        JsonSchema jsonSchema = converter.convert(openAPI.getComponents());
+        JsonSchema jsonSchema = converter.convert(openAPI.getComponents(), mainSchema);
 
         // print
         ObjectWriter objectWriter = ObjectMapperFactory.createJson()

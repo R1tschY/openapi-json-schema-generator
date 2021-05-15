@@ -1,7 +1,10 @@
 package de.richardliebscher.openapi_json_schema_generator;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.*;
+import com.fasterxml.jackson.databind.node.BooleanNode;
+import com.fasterxml.jackson.databind.node.DecimalNode;
+import com.fasterxml.jackson.databind.node.NullNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import de.richardliebscher.openapi_json_schema_generator.jsonschema.JsonSchema;
 import de.richardliebscher.openapi_json_schema_generator.jsonschema.JsonSchemaDataType;
 import io.swagger.v3.oas.models.Components;
@@ -16,6 +19,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.IntStream;
 
+import static io.swagger.v3.oas.models.Components.COMPONENTS_SCHEMAS_REF;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
@@ -26,21 +30,25 @@ public class Converter {
     private final JsonSchemaVersion jsonSchemaVersion;
     private final Consumer<Message> warningsListener;
 
-    JsonSchema convert(Components components) {
+    public JsonSchema convert(Components components, String mainSchema) {
         var path = new JsonPath("components").push("schemas");
+
         var jsonSchema = new JsonSchema();
+        jsonSchema.$schema = jsonSchemaVersion.id;
+        jsonSchema.$ref = mapReference(mainSchema, null);
+
         var definitions = components.getSchemas()
                 .entrySet()
                 .stream()
                 .collect(toMap(
                         Map.Entry::getKey,
                         e -> convert(e.getValue(), path.push(e.getKey()))));
-        jsonSchema.$schema = jsonSchemaVersion.id;
-        if (jsonSchemaVersion.compareTo(JsonSchemaVersion.v2019_09) >= 0) {
+        if (isOrNewerThan2019_09()) {
             jsonSchema.$defs = definitions;
         } else {
             jsonSchema.definitions = definitions;
         }
+
         return jsonSchema;
     }
 
@@ -72,10 +80,10 @@ public class Converter {
         jsonSchema.minProperties = schema.getMinProperties();
         jsonSchema.required = schema.getRequired();
         jsonSchema.description = schema.getDescription();
-        jsonSchema.$ref = schema.get$ref(); // TODO: map ref
 
         // schema conversions
 
+        jsonSchema.$ref = mapReference(schema.get$ref(), path);
         jsonSchema.not = convert(schema.getNot(), path.push("not"));
 
         if (schema instanceof ComposedSchema) {
@@ -142,7 +150,7 @@ public class Converter {
             jsonSchema.writeOnly = schema.getWriteOnly();
         }
 
-        if (jsonSchemaVersion.compareTo(JsonSchemaVersion.v2019_09) >= 0) {
+        if (isOrNewerThan2019_09()) {
             jsonSchema.deprecated = schema.getDeprecated();
         }
 
@@ -168,6 +176,34 @@ public class Converter {
         }
 
         return jsonSchema;
+    }
+
+    private String mapReference(String $ref, JsonPath path) {
+        if ($ref == null) {
+            return null;
+        }
+
+        // handle short ref
+        if (!$ref.contains(".") && !$ref.contains("/")) {
+            $ref = COMPONENTS_SCHEMAS_REF + $ref;
+        }
+
+        if ($ref.startsWith(COMPONENTS_SCHEMAS_REF)) {
+            String definitionsPath = isOrNewerThan2019_09() ? "#/$defs/" : "#/definitions/";
+            return definitionsPath + $ref.substring(COMPONENTS_SCHEMAS_REF.length());
+        } else {
+            if (path != null) {
+                throw new IllegalArgumentException(
+                        "At " + path + " reference outside of " + COMPONENTS_SCHEMAS_REF + "not supported: " + $ref);
+            } else {
+                throw new IllegalArgumentException(
+                        "Reference outside of " + COMPONENTS_SCHEMAS_REF + "not supported: " + $ref);
+            }
+        }
+    }
+
+    private boolean isOrNewerThan2019_09() {
+        return jsonSchemaVersion.compareTo(JsonSchemaVersion.v2019_09) >= 0;
     }
 
     private List<JsonNode> convertEnum(Schema<?> schema, JsonPath path) {

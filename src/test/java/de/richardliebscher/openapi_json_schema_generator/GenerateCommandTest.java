@@ -30,7 +30,7 @@ class GenerateCommandTest {
         JsonObject input = openApiWithSchemas(Json.object());
 
         // ACT
-        JsonValue jsonValue = convert(input, messageCollector, defaultConverter);
+        JsonValue jsonValue = convert(input);
 
         // ASSERT
         assertNotNull(jsonValue);
@@ -50,7 +50,7 @@ class GenerateCommandTest {
                                 .add("name", Json.object().add("type", "string")))));
 
         // ACT
-        JsonValue jsonValue = convert(input, messageCollector, defaultConverter);
+        JsonValue jsonValue = convert(input);
 
         // ASSERT
         assertNotNull(jsonValue);
@@ -68,7 +68,7 @@ class GenerateCommandTest {
             JsonObject input = openApiWithSchemas(Json.object());
 
             // ACT
-            JsonValue jsonValue = convert(input, messageCollector, defaultConverter);
+            JsonValue jsonValue = convert(input);
 
             // ASSERT
             assertNotNull(jsonValue);
@@ -85,7 +85,7 @@ class GenerateCommandTest {
                             .add("type", "string")));
 
             // ACT
-            JsonValue jsonValue = convert(input, messageCollector, defaultConverter);
+            JsonValue jsonValue = convert(input);
 
             // ASSERT
             assertNotNull(jsonValue);
@@ -110,7 +110,7 @@ class GenerateCommandTest {
                             .add("example", Json.object().add("id", 42).add("name", "TEST"))));
 
             // ACT
-            JsonValue jsonValue = convert(input, messageCollector, defaultConverter);
+            JsonValue jsonValue = convert(input);
 
             // ASSERT
             assertNotNull(jsonValue);
@@ -129,7 +129,7 @@ class GenerateCommandTest {
                             .add("example", 42.5)));
 
             // ACT
-            JsonValue jsonValue = convert(input, messageCollector, defaultConverter);
+            JsonValue jsonValue = convert(input);
 
             // ASSERT
             assertNotNull(jsonValue);
@@ -148,7 +148,7 @@ class GenerateCommandTest {
                             .add("example", 42)));
 
             // ACT
-            JsonValue jsonValue = convert(input, messageCollector, defaultConverter);
+            JsonValue jsonValue = convert(input);
 
             // ASSERT
             assertNotNull(jsonValue);
@@ -167,7 +167,7 @@ class GenerateCommandTest {
                             .add("example", "TEST")));
 
             // ACT
-            JsonValue jsonValue = convert(input, messageCollector, defaultConverter);
+            JsonValue jsonValue = convert(input);
 
             // ASSERT
             assertNotNull(jsonValue);
@@ -187,7 +187,7 @@ class GenerateCommandTest {
                             .add("example", Json.NULL)));
 
             // ACT
-            JsonValue jsonValue = convert(input, messageCollector, defaultConverter);
+            JsonValue jsonValue = convert(input);
 
             // ASSERT
             assertNotNull(jsonValue);
@@ -206,7 +206,7 @@ class GenerateCommandTest {
                             .add("nullable", true)));
 
             // ACT
-            JsonValue jsonValue = convert(input, messageCollector, defaultConverter);
+            JsonValue jsonValue = convert(input);
 
             // ASSERT
             assertNotNull(jsonValue);
@@ -214,6 +214,66 @@ class GenerateCommandTest {
 
             JsonObject type = jsonValue.asObject().get("$defs").asObject().get("Test").asObject();
             assertNull(type.get("examples"));
+        }
+    }
+
+    @Nested
+    class $ref {
+        @Test
+        void checkRewriteRefs() {
+            // ARRANGE
+            JsonObject input = openApiWithSchemas(Json.object()
+                    .add("StringRef", Json.object()
+                            .add("$ref", "#/components/schemas/String"))
+                    .add("String", Json.object()
+                            .add("type", "string")));
+
+            // ACT
+            JsonValue jsonValue = convert(input);
+
+            // ASSERT
+            assertNotNull(jsonValue);
+            assertNoMessages();
+
+            JsonObject type = jsonValue.asObject().get("$defs").asObject().get("StringRef").asObject();
+            assertEquals("#/$defs/String", type.get("$ref").asString());
+        }
+    }
+
+    @Nested
+    class MainSchema {
+        @Test
+        void checkMainSchemaFullRef() {
+            // ARRANGE
+            JsonObject input = openApiWithSchemas(Json.object()
+                    .add("String", Json.object()
+                            .add("type", "string")));
+
+            // ACT
+            JsonValue jsonValue = convert(input, "#/components/schemas/String", messageCollector, defaultConverter);;
+
+            // ASSERT
+            assertNotNull(jsonValue);
+            assertNoMessages();
+
+            assertEquals("#/$defs/String", jsonValue.asObject().get("$ref").asString());
+        }
+
+        @Test
+        void checkMainSchemaShortRef() {
+            // ARRANGE
+            JsonObject input = openApiWithSchemas(Json.object()
+                    .add("String", Json.object()
+                            .add("type", "string")));
+
+            // ACT
+            JsonValue jsonValue = convert(input, "String", messageCollector, defaultConverter);;
+
+            // ASSERT
+            assertNotNull(jsonValue);
+            assertNoMessages();
+
+            assertEquals("#/$defs/String", jsonValue.asObject().get("$ref").asString());
         }
     }
 
@@ -228,7 +288,7 @@ class GenerateCommandTest {
                             .add("additionalProperties", false)));
 
             // ACT
-            JsonValue jsonValue = convert(input, messageCollector, defaultConverter);
+            JsonValue jsonValue = convert(input);
 
             // ASSERT
             assertNotNull(jsonValue);
@@ -247,7 +307,7 @@ class GenerateCommandTest {
                             .add("additionalProperties", Json.object().add("type", "integer"))));
 
             // ACT
-            JsonValue jsonValue = convert(input, messageCollector, defaultConverter);
+            JsonValue jsonValue = convert(input);
 
             // ASSERT
             assertNotNull(jsonValue);
@@ -270,7 +330,7 @@ class GenerateCommandTest {
                                 .add(Json.array()))));
 
         // ACT
-        JsonValue jsonValue = convert(input, messageCollector, defaultConverter);
+        JsonValue jsonValue = convert(input);
 
         // ASSERT
         assertNotNull(jsonValue);
@@ -287,7 +347,7 @@ class GenerateCommandTest {
                 .add("Test", Json.object()));
 
         // ACT
-        JsonValue jsonValue = convert(input, messageCollector, defaultConverter);
+        JsonValue jsonValue = convert(input);
 
         // ASSERT
         assertNotNull(jsonValue);
@@ -306,7 +366,7 @@ class GenerateCommandTest {
                         .add("default", Json.value(42))));
 
         // ACT
-        JsonValue jsonValue = convert(input, messageCollector, defaultConverter);
+        JsonValue jsonValue = convert(input);
 
         // ASSERT
         assertNotNull(jsonValue);
@@ -323,7 +383,7 @@ class GenerateCommandTest {
                 .add("Test", Json.object().add("type", "integer").add("format", "int32")));
 
         // ACT
-        JsonValue jsonValue = convert(input, messageCollector, defaultConverter);
+        JsonValue jsonValue = convert(input);
 
         // ASSERT
         assertNotNull(jsonValue);
@@ -342,7 +402,7 @@ class GenerateCommandTest {
                 .add("Test", Json.object().add("type", "integer").add("format", "int64")));
 
         // ACT
-        JsonValue jsonValue = convert(input, messageCollector, defaultConverter);
+        JsonValue jsonValue = convert(input);
 
         // ASSERT
         assertNotNull(jsonValue);
@@ -363,7 +423,7 @@ class GenerateCommandTest {
                     .add("Test", Json.object().add("type", "integer").add("nullable", true)));
 
             // ACT
-            JsonValue jsonValue = convert(input, messageCollector, defaultConverter);
+            JsonValue jsonValue = convert(input);
 
             // ASSERT
             assertNotNull(jsonValue);
@@ -381,7 +441,7 @@ class GenerateCommandTest {
                     .add("Test", Json.object().add("type", "integer").add("nullable", false)));
 
             // ACT
-            JsonValue jsonValue = convert(input, messageCollector, defaultConverter);
+            JsonValue jsonValue = convert(input);
 
             // ASSERT
             assertNotNull(jsonValue);
@@ -401,7 +461,7 @@ class GenerateCommandTest {
                             .add("nullable", true)));
 
             // ACT
-            JsonValue jsonValue = convert(input, messageCollector, defaultConverter);
+            JsonValue jsonValue = convert(input);
 
             // ASSERT
             assertNotNull(jsonValue);
@@ -422,7 +482,7 @@ class GenerateCommandTest {
                             .add("nullable", false)));
 
             // ACT
-            JsonValue jsonValue = convert(input, messageCollector, defaultConverter);
+            JsonValue jsonValue = convert(input);
 
             // ASSERT
             assertNotNull(jsonValue);
@@ -441,7 +501,7 @@ class GenerateCommandTest {
                 .add("Test", Json.object().add("type", "array").add("items", Json.object().add("type", "integer"))));
 
         // ACT
-        JsonValue jsonValue = convert(input, messageCollector, defaultConverter);
+        JsonValue jsonValue = convert(input);
 
         // ASSERT
         assertNotNull(jsonValue);
@@ -461,7 +521,7 @@ class GenerateCommandTest {
                         .add("exclusiveMaximum", true)));
 
         // ACT
-        JsonValue jsonValue = convert(input, messageCollector, defaultConverter);
+        JsonValue jsonValue = convert(input);
 
         // ASSERT
         assertNotNull(jsonValue);
@@ -482,7 +542,7 @@ class GenerateCommandTest {
                         .add("exclusiveMinimum", true)));
 
         // ACT
-        JsonValue jsonValue = convert(input, messageCollector, defaultConverter);
+        JsonValue jsonValue = convert(input);
 
         // ASSERT
         assertNotNull(jsonValue);
@@ -503,7 +563,7 @@ class GenerateCommandTest {
                         .add(Json.object().add("type", "string")))));
 
         // ACT
-        JsonValue jsonValue = convert(input, messageCollector, defaultConverter);
+        JsonValue jsonValue = convert(input);
 
         // ASSERT
         assertNotNull(jsonValue);
@@ -529,15 +589,26 @@ class GenerateCommandTest {
                         .add("schemas", schemas));
     }
 
-    private JsonValue convert(JsonValue input, MessageCollector messageCollector, Converter converter) {
+    private JsonValue convert(JsonObject input) {
+        return convert(input, null, messageCollector, defaultConverter);
+    }
+
+    private JsonValue convert(
+            JsonValue input, String mainSchema, MessageCollector messageCollector, Converter converter) {
         var inputStream = new ByteArrayInputStream(input.toString().getBytes(StandardCharsets.UTF_8));
         var outputStream = new ByteArrayOutputStream();
-        var command = new GenerateCommand("-", inputStream, outputStream, converter, messageCollector);
+        var command = new GenerateCommand("-", mainSchema, inputStream, outputStream, converter, messageCollector);
 
         int code = command.run();
         if (code != 0) {
             return null;
         }
+
+        System.out.println("IN:");
+        System.out.println(input);
+        System.out.println("OUT:");
+        System.out.println(outputStream.toString(StandardCharsets.UTF_8));
+
         return Json.parse(outputStream.toString(StandardCharsets.UTF_8));
     }
 

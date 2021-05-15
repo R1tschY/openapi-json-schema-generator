@@ -22,6 +22,12 @@ public class Main implements Runnable {
             description = "Reference to OpenAPI specification in JSON or YAML format")
     private String input;
 
+    @Parameters(
+            arity = "0..1",
+            paramLabel = "MAIN_SCHEMA",
+            description = "Name of schema or reference to schema: 'MySchema' or '#/components/schemas/MySchema'")
+    private String mainSchema;
+
     @Option(
             names = {"--exclude-read-only"},
             description = "Exclude read only properties.")
@@ -70,7 +76,7 @@ public class Main implements Runnable {
         Converter converter = new Converter(
                 !excludeReadOnly, !excludeWriteOnly, jsonSchemaVersion, warningConsumer);
         GenerateCommand command = new GenerateCommand(
-                input, System.in, System.out, converter, warningConsumer);
+                input, mainSchema, System.in, System.out, converter, warningConsumer);
         System.exit(command.run());
     }
 }
