@@ -5,11 +5,15 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.util.Iterator;
+import java.util.Properties;
 import java.util.function.Consumer;
 
 @Command(
-        name = "generate",
+        name = "openapi-json-schema-generator",
         description = "Generate JSON schema from Open API specification",
         mixinStandardHelpOptions = true,
         versionProvider = Main.VersionProvider.class
@@ -17,15 +21,18 @@ import java.util.function.Consumer;
 public class Main implements Runnable {
 
     @Parameters(
+            index = "0",
             arity = "1",
             paramLabel = "INPUT",
             description = "Reference to OpenAPI specification in JSON or YAML format")
     private String input;
 
     @Parameters(
+            index = "1",
             arity = "0..1",
             paramLabel = "MAIN_SCHEMA",
-            description = "Name of schema or reference to schema: 'MySchema' or '#/components/schemas/MySchema'")
+            description = "Name of schema ('MySchema') or reference to schema ('#/components/schemas/MySchema') " +
+                    "to use as top-level schema. Allows to use output to directly validate this schema.")
     private String mainSchema;
 
     @Option(
@@ -40,14 +47,16 @@ public class Main implements Runnable {
 
     @Option(
             names = {"--json-schema-version"},
-            description = "Version of JSON schema for output. Choices: ${COMPLETION-CANDIDATES}",
+            description = "Use this JSON Schema Draft for output. Choices: ${COMPLETION-CANDIDATES}",
+            defaultValue = "2019-09",
+            showDefaultValue = CommandLine.Help.Visibility.ALWAYS,
             completionCandidates = JsonSchemaVersionCandidates.class)
-    private JsonSchemaVersion jsonSchemaVersion = JsonSchemaVersion.v2019_09;
+    private JsonSchemaDraft jsonSchemaDraft;
 
     private static class JsonSchemaVersionCandidates implements Iterable<String> {
         @Override
         public Iterator<String> iterator() {
-            return JsonSchemaVersion.names().iterator();
+            return JsonSchemaDraft.names().iterator();
         }
     }
 
@@ -72,7 +81,7 @@ public class Main implements Runnable {
     public static void main(String[] args) {
         try {
             System.exit(new CommandLine(new Main())
-                    .registerConverter(JsonSchemaVersion.class, JsonSchemaVersion::fromName)
+                    .registerConverter(JsonSchemaDraft.class, JsonSchemaDraft::fromName)
                     .execute(args));
         } catch (RuntimeException exp) {
             System.err.println("Error: " + exp.getMessage());
@@ -92,7 +101,7 @@ public class Main implements Runnable {
         };
 
         Converter converter = new Converter(
-                !excludeReadOnly, !excludeWriteOnly, jsonSchemaVersion, warningConsumer);
+                !excludeReadOnly, !excludeWriteOnly, jsonSchemaDraft, warningConsumer);
         GenerateCommand command = new GenerateCommand(
                 input, mainSchema, System.in, System.out, converter, warningConsumer);
         System.exit(command.run());

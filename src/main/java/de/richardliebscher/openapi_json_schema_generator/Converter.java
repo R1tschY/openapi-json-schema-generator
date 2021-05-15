@@ -27,14 +27,14 @@ import static java.util.stream.Collectors.toMap;
 public class Converter {
     private final boolean includeReadOnly;
     private final boolean includeWriteOnly;
-    private final JsonSchemaVersion jsonSchemaVersion;
+    private final JsonSchemaDraft jsonSchemaDraft;
     private final Consumer<Message> warningsListener;
 
     public JsonSchema convert(Components components, String mainSchema) {
         var path = new JsonPath("components").push("schemas");
 
         var jsonSchema = new JsonSchema();
-        jsonSchema.$schema = jsonSchemaVersion.id;
+        jsonSchema.$schema = jsonSchemaDraft.id;
         jsonSchema.$ref = mapReference(mainSchema, null);
 
         var definitions = components.getSchemas()
@@ -115,7 +115,7 @@ public class Converter {
 
         // v4 -> v6
 
-        if (jsonSchemaVersion.compareTo(JsonSchemaVersion.v6) >= 0) {
+        if (jsonSchemaDraft.compareTo(JsonSchemaDraft.v6) >= 0) {
             if (Boolean.TRUE.equals(schema.getExclusiveMaximum())) {
                 jsonSchema.exclusiveMaximum = schema.getMaximum();
             } else {
@@ -145,7 +145,7 @@ public class Converter {
         }
         setFormat(schema.getFormat(), jsonSchema, path);
 
-        if (jsonSchemaVersion.compareTo(JsonSchemaVersion.v7) >= 0) {
+        if (jsonSchemaDraft.compareTo(JsonSchemaDraft.v7) >= 0) {
             jsonSchema.readOnly = schema.getReadOnly();
             jsonSchema.writeOnly = schema.getWriteOnly();
         }
@@ -203,7 +203,7 @@ public class Converter {
     }
 
     private boolean isOrNewerThan2019_09() {
-        return jsonSchemaVersion.compareTo(JsonSchemaVersion.v2019_09) >= 0;
+        return jsonSchemaDraft.compareTo(JsonSchemaDraft.v2019_09) >= 0;
     }
 
     private List<JsonNode> convertEnum(Schema<?> schema, JsonPath path) {
@@ -311,7 +311,7 @@ public class Converter {
                 break;
             }
             case "byte": {
-                if (jsonSchemaVersion.compareTo(JsonSchemaVersion.v7) >= 0) {
+                if (jsonSchemaDraft.compareTo(JsonSchemaDraft.v7) >= 0) {
                     schema.contentEncoding = "base64";
                 }
                 schema.pattern = "^[a-zA-Z0-9+\\/]*=*$";

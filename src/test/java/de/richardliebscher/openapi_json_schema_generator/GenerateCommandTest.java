@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class GenerateCommandTest {
 
     private final MessageCollector messageCollector = new MessageCollector();
-    private final Converter defaultConverter = new Converter(true, true, JsonSchemaVersion.v2019_09, messageCollector);
+    private final Converter defaultConverter = new Converter(true, true, JsonSchemaDraft.v2019_09, messageCollector);
 
     @Test
     void checkMinimal() {
@@ -74,7 +74,7 @@ class GenerateCommandTest {
             assertNotNull(jsonValue);
             assertNoMessages();
 
-            assertEquals(JsonSchemaVersion.v2019_09.id, jsonValue.asObject().get("$schema").asString());
+            assertEquals(JsonSchemaDraft.v2019_09.id, jsonValue.asObject().get("$schema").asString());
         }
 
         @Test
@@ -250,7 +250,7 @@ class GenerateCommandTest {
                             .add("type", "string")));
 
             // ACT
-            JsonValue jsonValue = convert(input, "#/components/schemas/String", messageCollector, defaultConverter);;
+            JsonValue jsonValue = convert(input, "#/components/schemas/String", messageCollector, defaultConverter);
 
             // ASSERT
             assertNotNull(jsonValue);
@@ -267,7 +267,7 @@ class GenerateCommandTest {
                             .add("type", "string")));
 
             // ACT
-            JsonValue jsonValue = convert(input, "String", messageCollector, defaultConverter);;
+            JsonValue jsonValue = convert(input, "String", messageCollector, defaultConverter);
 
             // ASSERT
             assertNotNull(jsonValue);
