@@ -12,7 +12,7 @@ import java.util.function.Consumer;
         name = "generate",
         description = "Generate JSON schema from Open API specification",
         mixinStandardHelpOptions = true,
-        version = "openapi-json-schema-generator 0.1"
+        versionProvider = Main.VersionProvider.class
 )
 public class Main implements Runnable {
 
@@ -48,6 +48,24 @@ public class Main implements Runnable {
         @Override
         public Iterator<String> iterator() {
             return JsonSchemaVersion.names().iterator();
+        }
+    }
+
+    static class VersionProvider implements CommandLine.IVersionProvider {
+
+        public static final String VERSION_PROPERTIES =
+                "/de/richardliebscher/openapi_json_schema_generator/version.properties";
+
+        @Override
+        public String[] getVersion() {
+            Properties prop = new Properties();
+            try (InputStream inputStream = Main.class.getResourceAsStream(VERSION_PROPERTIES)) {
+                prop.load(inputStream);
+            } catch (IOException exception) {
+                throw new UncheckedIOException(exception);
+            }
+
+            return new String[] { prop.getProperty("name") + " " + prop.getProperty("version") };
         }
     }
 

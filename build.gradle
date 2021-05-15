@@ -1,3 +1,6 @@
+import java.nio.file.Files
+import java.nio.file.Paths
+
 plugins {
     id 'java'
     id 'application'
@@ -28,4 +31,20 @@ test {
 
 application {
     mainClass = 'de.richardliebscher.openapi_json_schema_generator.Main'
+}
+
+task createProperties(dependsOn: processResources) {
+    doLast {
+        Files.createDirectories(Paths.get("$buildDir/resources/main/de/richardliebscher/openapi_json_schema_generator"));
+        new File("$buildDir/resources/main/de/richardliebscher/openapi_json_schema_generator/version.properties").withWriter { w ->
+            Properties p = new Properties()
+            p['version'] = project.version.toString()
+            p['name'] = project.name.toString()
+            p.store w, null
+        }
+    }
+}
+
+classes {
+    dependsOn createProperties
 }
