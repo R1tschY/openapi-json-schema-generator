@@ -148,3 +148,6 @@ Generate JSON schema from Open API specification
   -V, --version              Print version information and exit.
 ```
 
+## License
+
+This code is under the Apache Licence v2.
