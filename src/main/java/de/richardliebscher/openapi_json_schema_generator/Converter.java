@@ -294,19 +294,19 @@ public class Converter {
             }
             case "float": {
                 if (schema.minimum == null) {
-                    schema.minimum = BigDecimal.valueOf(Float.MAX_VALUE);
+                    schema.minimum = BigDecimal.valueOf(-Float.MAX_VALUE);
                 }
                 if (schema.maximum == null) {
-                    schema.maximum = BigDecimal.valueOf(-Float.MAX_VALUE);
+                    schema.maximum = BigDecimal.valueOf(Float.MAX_VALUE);
                 }
                 break;
             }
             case "double": {
                 if (schema.minimum == null) {
-                    schema.minimum = BigDecimal.valueOf(Double.MAX_VALUE);
+                    schema.minimum = BigDecimal.valueOf(-Double.MAX_VALUE);
                 }
                 if (schema.maximum == null) {
-                    schema.maximum = BigDecimal.valueOf(-Double.MAX_VALUE);
+                    schema.maximum = BigDecimal.valueOf(Double.MAX_VALUE);
                 }
                 break;
             }
