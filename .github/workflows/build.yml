@@ -15,8 +15,11 @@ jobs:
           java-version: '11'
           distribution: 'adopt'
 
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
+
       - name: Build with Gradle
-        run: ./gradlew build distZip distTar
+        run: ./gradlew build distZip
 
       - name: Test with Gradle
         run: ./gradlew test
