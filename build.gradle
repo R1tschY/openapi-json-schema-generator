@@ -5,10 +5,11 @@ plugins {
     id 'java'
     id 'application'
     id "io.freefair.lombok" version "6.0.0-m2"
+    id 'net.researchgate.release' version '3.0.1'
 }
 
-group 'de.richardliebscher'
-version '0.1-SNAPSHOT'
+group 'de.richardliebscher.openapi'
+version project.property("version")
 
 repositories {
     mavenCentral()
@@ -33,9 +34,17 @@ application {
     mainClass = 'de.richardliebscher.openapi_json_schema_generator.Main'
 }
 
+release {
+    tagTemplate = 'v${version}'
+
+    git {
+        requireBranch.set('master')
+    }
+}
+
 task createProperties(dependsOn: processResources) {
     doLast {
-        Files.createDirectories(Paths.get("$buildDir/resources/main/de/richardliebscher/openapi_json_schema_generator"));
+        Files.createDirectories(Paths.get("$buildDir/resources/main/de/richardliebscher/openapi_json_schema_generator"))
         new File("$buildDir/resources/main/de/richardliebscher/openapi_json_schema_generator/version.properties").withWriter { w ->
             Properties p = new Properties()
             p['version'] = project.version.toString()
