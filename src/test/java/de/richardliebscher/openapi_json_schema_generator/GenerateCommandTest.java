@@ -376,42 +376,82 @@ class GenerateCommandTest {
         assertEquals(42, type.get("default").asInt());
     }
 
-    @Test
-    void checkInt32() {
-        // ARRANGE
-        JsonObject input = openApiWithSchemas(Json.object()
-                .add("Test", Json.object().add("type", "integer").add("format", "int32")));
+    @Nested
+    class Format {
 
-        // ACT
-        JsonValue jsonValue = convert(input);
+        @Test
+        void checkInt32() {
+            // ARRANGE
+            JsonObject input = openApiWithSchemas(Json.object()
+                    .add("Test", Json.object().add("type", "integer").add("format", "int32")));
 
-        // ASSERT
-        assertNotNull(jsonValue);
-        assertNoMessages();
+            // ACT
+            JsonValue jsonValue = convert(input);
 
-        JsonObject type = jsonValue.asObject().get("$defs").asObject().get("Test").asObject();
-        assertEquals("integer", type.get("type").asArray().get(0).asString());
-        assertEquals(Integer.MAX_VALUE, type.get("maximum").asInt());
-        assertEquals(Integer.MIN_VALUE, type.get("minimum").asInt());
-    }
+            // ASSERT
+            assertNotNull(jsonValue);
+            assertNoMessages();
 
-    @Test
-    void checkInt64() {
-        // ARRANGE
-        JsonObject input = openApiWithSchemas(Json.object()
-                .add("Test", Json.object().add("type", "integer").add("format", "int64")));
+            JsonObject type = jsonValue.asObject().get("$defs").asObject().get("Test").asObject();
+            assertEquals("integer", type.get("type").asArray().get(0).asString());
+            assertEquals(Integer.MAX_VALUE, type.get("maximum").asInt());
+            assertEquals(Integer.MIN_VALUE, type.get("minimum").asInt());
+        }
 
-        // ACT
-        JsonValue jsonValue = convert(input);
+        @Test
+        void checkInt64() {
+            // ARRANGE
+            JsonObject input = openApiWithSchemas(Json.object()
+                    .add("Test", Json.object().add("type", "integer").add("format", "int64")));
 
-        // ASSERT
-        assertNotNull(jsonValue);
-        assertNoMessages();
+            // ACT
+            JsonValue jsonValue = convert(input);
 
-        JsonObject type = jsonValue.asObject().get("$defs").asObject().get("Test").asObject();
-        assertEquals("integer", type.get("type").asArray().get(0).asString());
-        assertEquals(Long.MAX_VALUE, type.get("maximum").asLong());
-        assertEquals(Long.MIN_VALUE, type.get("minimum").asLong());
+            // ASSERT
+            assertNotNull(jsonValue);
+            assertNoMessages();
+
+            JsonObject type = jsonValue.asObject().get("$defs").asObject().get("Test").asObject();
+            assertEquals("integer", type.get("type").asArray().get(0).asString());
+            assertEquals(Long.MAX_VALUE, type.get("maximum").asLong());
+            assertEquals(Long.MIN_VALUE, type.get("minimum").asLong());
+        }
+
+        @Test
+        void checkFloat() {
+            // ARRANGE
+            JsonObject input = openApiWithSchemas(Json.object()
+                    .add("Test", Json.object().add("type", "number").add("format", "float")));
+
+            // ACT
+            JsonValue jsonValue = convert(input);
+
+            // ASSERT
+            assertNotNull(jsonValue);
+            assertNoMessages();
+
+            JsonObject type = jsonValue.asObject().get("$defs").asObject().get("Test").asObject();
+            assertEquals(Float.MAX_VALUE, type.get("maximum").asFloat());
+            assertEquals(-Float.MAX_VALUE, type.get("minimum").asFloat());
+        }
+
+        @Test
+        void checkDouble() {
+            // ARRANGE
+            JsonObject input = openApiWithSchemas(Json.object()
+                    .add("Test", Json.object().add("type", "number").add("format", "double")));
+
+            // ACT
+            JsonValue jsonValue = convert(input);
+
+            // ASSERT
+            assertNotNull(jsonValue);
+            assertNoMessages();
+
+            JsonObject type = jsonValue.asObject().get("$defs").asObject().get("Test").asObject();
+            assertEquals(Double.MAX_VALUE, type.get("maximum").asDouble());
+            assertEquals(-Double.MAX_VALUE, type.get("minimum").asDouble());
+        }
     }
 
     @Nested
