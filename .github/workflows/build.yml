@@ -24,7 +24,7 @@ jobs:
       - name: Test with Gradle
         run: ./gradlew test
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           name: Package
           path: build/distributions
