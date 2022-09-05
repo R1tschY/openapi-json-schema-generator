@@ -4,7 +4,7 @@ import java.nio.file.Paths
 plugins {
     id 'java'
     id 'application'
-    id "io.freefair.lombok" version "6.0.0-m2"
+    id "io.freefair.lombok" version "6.5.1"
     id 'net.researchgate.release' version '3.0.1'
 }
 
