@@ -17,7 +17,7 @@ repositories {
 
 dependencies {
     implementation 'io.swagger.parser.v3:swagger-parser:2.1.9'
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.14.0'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.14.1'
     implementation 'info.picocli:picocli:4.7.0'
     implementation 'commons-io:commons-io:2.11.0'
     testImplementation 'com.eclipsesource.minimal-json:minimal-json:0.9.5'
