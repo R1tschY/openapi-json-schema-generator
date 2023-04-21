@@ -18,14 +18,10 @@ jobs:
       - name: Validate Gradle wrapper
         uses: gradle/wrapper-validation-action@v1
 
-      - name: Setup Gradle
+      - name: Build, Test and Pack with Gradle
         uses: gradle/gradle-build-action@v2
-
-      - name: Build with Gradle
-        run: ./gradlew build distZip
-
-      - name: Test with Gradle
-        run: ./gradlew test
+        with:
+          arguments: build distZip
 
       - uses: actions/upload-artifact@v3
         with:

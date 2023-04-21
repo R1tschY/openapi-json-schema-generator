@@ -25,11 +25,10 @@ jobs:
       - name: Validate Gradle wrapper
         uses: gradle/wrapper-validation-action@v1
 
-      - name: Setup Gradle
+      - name: Build, Test and Pack with Gradle
         uses: gradle/gradle-build-action@v2
-
-      - name: Build
-        run: ./gradlew build distZip
+        with:
+          arguments: build distZip
 
       # Upload artifact as a release asset
       - name: Upload Release Asset
