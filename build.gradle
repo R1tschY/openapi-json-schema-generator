@@ -16,7 +16,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'io.swagger.parser.v3:swagger-parser:2.1.15'
+    implementation 'io.swagger.parser.v3:swagger-parser:2.1.16'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
     implementation 'info.picocli:picocli:4.7.4'
     implementation 'commons-io:commons-io:2.13.0'
